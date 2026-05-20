@@ -48,7 +48,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * Creates a NATS container using a specific docker image name.
    *
    * @param dockerImageName
-   *     The docker image to use.
+   *     the docker image to use
    */
   public NatsContainer(String dockerImageName) {
     this(DockerImageName.parse(dockerImageName));
@@ -58,7 +58,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * Creates a NATS container using a specific docker image.
    *
    * @param dockerImageName
-   *     The docker image to use.
+   *     the docker image to use
    */
   public NatsContainer(DockerImageName dockerImageName) {
     super(dockerImageName);
@@ -72,35 +72,45 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   }
 
   /**
-   * @return username configured while setting up container, {@code null} if not configured
+   * Gets the configured username for NATS authentication.
+   *
+   * @return the configured username (may be {@code null} if not configured)
    */
   public String getUsername() {
     return username;
   }
 
   /**
-   * @return password configured while setting up container, {@code null} if not configured
+   * Gets the configured password for NATS authentication.
+   *
+   * @return the configured password (may be {@code null} if not configured)
    */
   public String getPassword() {
     return password;
   }
 
   /**
-   * @return {@code true} if JetStream option is enabled, {@code false} otherwise
+   * Gets the value of jet stream feature flag.
+   *
+   * @return the jet stream feature flag
    */
   public boolean isJetStreamEnabled() {
     return jetStreamEnabled;
   }
 
   /**
-   * @return {@code true} if debug option is enabled, {@code false} otherwise
+   * Gets the value of debug feature flag.
+   *
+   * @return the debug feature flag
    */
   public boolean isDebugEnabled() {
     return debugEnabled;
   }
 
   /**
-   * @return {@code true} if protocol tracing option is enabled, {@code false} otherwise
+   * Gets the value of protocol tracing feature flag.
+   *
+   * @return the protocol tracing feature flag
    */
   public boolean isProtocolTracingEnabled() {
     return protocolTracingEnabled;
@@ -109,7 +119,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Gets the port for client connections.
    *
-   * @return The mapped port for client connections.
+   * @return the mapped port for client connections
    */
   public Integer getClientPort() {
     return getMappedPort(DEFAULT_NATS_CLIENT_PORT);
@@ -118,7 +128,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Gets the port for cluster/route connections.
    *
-   * @return The mapped port for routing connections.
+   * @return the mapped port for routing connections
    */
   public Integer getRoutingPort() {
     return getMappedPort(DEFAULT_NATS_ROUTING_PORT);
@@ -127,7 +137,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Gets the port for HTTP monitoring.
    *
-   * @return The mapped port for HTTP monitoring.
+   * @return the mapped port for HTTP monitoring
    */
   public Integer getHttpMonitoringPort() {
     return getMappedPort(DEFAULT_NATS_HTTP_MONITORING_PORT);
@@ -154,7 +164,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Enables JetStream for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withJetStream() {
     jetStreamEnabled = true;
@@ -165,10 +175,10 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * Configures authentication with username and password.
    *
    * @param username
-   *     The username for authentication
+   *     the username for authentication
    * @param password
-   *     The password for authentication
-   * @return This container instance
+   *     the password for authentication
+   * @return this container instance
    */
   public NatsContainer withAuth(String username, String password) {
     this.username = username;
@@ -179,7 +189,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Enables debug logging for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withDebug() {
     debugEnabled = true;
@@ -189,7 +199,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Enables protocol tracing for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withProtocolTracing() {
     protocolTracingEnabled = true;
