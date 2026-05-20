@@ -72,6 +72,41 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   }
 
   /**
+   * @return username configured while setting up container, {@code null} if not configured
+   */
+  public String getUsername() {
+    return username;
+  }
+
+  /**
+   * @return password configured while setting up container, {@code null} if not configured
+   */
+  public String getPassword() {
+    return password;
+  }
+
+  /**
+   * @return {@code true} if JetStream option is enabled, {@code false} otherwise
+   */
+  public boolean isJetStreamEnabled() {
+    return jetStreamEnabled;
+  }
+
+  /**
+   * @return {@code true} if debug option is enabled, {@code false} otherwise
+   */
+  public boolean isDebugEnabled() {
+    return debugEnabled;
+  }
+
+  /**
+   * @return {@code true} if protocol tracing option is enabled, {@code false} otherwise
+   */
+  public boolean isProtocolTracingEnabled() {
+    return protocolTracingEnabled;
+  }
+
+  /**
    * Gets the port for client connections.
    *
    * @return The mapped port for client connections.
