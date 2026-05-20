@@ -102,6 +102,16 @@ try (NatsContainer nats = new NatsContainer("nats:2.12.1")
 | `withDebug()` | Enables debug logging |
 | `withProtocolTracing()` | Enables protocol tracing |
 
+### Configuration Accessors
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `isJetStreamEnabled()` | `boolean` | Whether JetStream was enabled via `withJetStream()` |
+| `isDebugEnabled()` | `boolean` | Whether debug logging was enabled via `withDebug()` |
+| `isProtocolTracingEnabled()` | `boolean` | Whether protocol tracing was enabled via `withProtocolTracing()` |
+| `getUsername()` | `String` | Username configured via `withAuth()`, or `null` |
+| `getPassword()` | `String` | Password configured via `withAuth()`, or `null` |
+
 ## Building
 
 ```bash
