@@ -1,5 +1,8 @@
 package io.github.amadeusitgroup.testcontainers.nats;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
@@ -34,6 +37,12 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   public static final int DEFAULT_NATS_HTTP_MONITORING_PORT = 8222;
 
   private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("nats");
+
+  private String username = null;
+  private String password = null;
+  private boolean jetStreamEnabled = false;
+  private boolean debugEnabled = false;
+  private boolean protocolTracingEnabled = false;
 
   /**
    * Creates a NATS container using a specific docker image name.
@@ -113,7 +122,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * @return This container instance
    */
   public NatsContainer withJetStream() {
-    withCommand("--jetstream");
+    jetStreamEnabled = true;
     return this;
   }
 
@@ -127,7 +136,8 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * @return This container instance
    */
   public NatsContainer withAuth(String username, String password) {
-    withCommand("--user", username, "--pass", password);
+    this.username = username;
+    this.password = password;
     return this;
   }
 
@@ -137,7 +147,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * @return This container instance
    */
   public NatsContainer withDebug() {
-    withCommand("-D");
+    debugEnabled = true;
     return this;
   }
 
@@ -147,7 +157,30 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * @return This container instance
    */
   public NatsContainer withProtocolTracing() {
-    withCommand("-V");
+    protocolTracingEnabled = true;
     return this;
+  }
+
+  /**
+   * Applies all accumulated command-line arguments to the container before it starts.
+   */
+  @Override
+  protected void configure() {
+    List<String> cmd = new ArrayList<>();
+    if (username != null) {
+      cmd.addAll(Arrays.asList("--user", username, "--pass", password));
+    }
+    if (jetStreamEnabled) {
+      cmd.add("--jetstream");
+    }
+    if (debugEnabled) {
+      cmd.add("-D");
+    }
+    if (protocolTracingEnabled) {
+      cmd.add("-V");
+    }
+    if (!cmd.isEmpty()) {
+      withCommand(cmd.toArray(new String[0]));
+    }
   }
 }
