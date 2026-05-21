@@ -64,11 +64,11 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
     super(dockerImageName);
     dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
 
-    withExposedPorts(
+    addExposedPorts(
         DEFAULT_NATS_CLIENT_PORT,
         DEFAULT_NATS_ROUTING_PORT,
         DEFAULT_NATS_HTTP_MONITORING_PORT);
-    waitingFor(Wait.forLogMessage(".*Server is ready.*", 1));
+    setWaitStrategy(Wait.forLogMessage(".*Server is ready.*", 1));
   }
 
   /**
@@ -211,7 +211,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    */
   @Override
   protected void configure() {
-    List<String> cmd = new ArrayList<>();
+    List<String> cmd = new ArrayList<>(Arrays.asList(getCommandParts()));
     if (username != null) {
       cmd.addAll(Arrays.asList("--user", username, "--pass", password));
     }
@@ -224,8 +224,6 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
     if (protocolTracingEnabled) {
       cmd.add("-V");
     }
-    if (!cmd.isEmpty()) {
-      withCommand(cmd.toArray(new String[0]));
-    }
+    setCommandParts(cmd.toArray(new String[0]));
   }
 }

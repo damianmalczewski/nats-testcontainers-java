@@ -231,4 +231,19 @@ class NatsContainerTest {
       }
     }
   }
+
+  @Test
+  void shouldRetainAdditionalCommandOptions() {
+    try (NatsContainer natsContainer =
+        new NatsContainer(NATS_IMAGE)
+            .withCommand("--name", "test-server")
+            .withJetStream()
+            .withDebug()) {
+
+      natsContainer.configure();
+
+      assertThat(natsContainer.getCommandParts())
+          .contains("--name", "test-server", "--jetstream", "-D");
+    }
+  }
 }
