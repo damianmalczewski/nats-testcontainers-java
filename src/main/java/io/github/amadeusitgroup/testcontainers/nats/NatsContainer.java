@@ -1,5 +1,8 @@
 package io.github.amadeusitgroup.testcontainers.nats;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
@@ -35,11 +38,17 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
 
   private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("nats");
 
+  private String username = null;
+  private String password = null;
+  private boolean jetStreamEnabled = false;
+  private boolean debugEnabled = false;
+  private boolean protocolTracingEnabled = false;
+
   /**
    * Creates a NATS container using a specific docker image name.
    *
    * @param dockerImageName
-   *     The docker image to use.
+   *     the docker image to use
    */
   public NatsContainer(String dockerImageName) {
     this(DockerImageName.parse(dockerImageName));
@@ -49,23 +58,68 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * Creates a NATS container using a specific docker image.
    *
    * @param dockerImageName
-   *     The docker image to use.
+   *     the docker image to use
    */
   public NatsContainer(DockerImageName dockerImageName) {
     super(dockerImageName);
     dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
 
-    withExposedPorts(
+    addExposedPorts(
         DEFAULT_NATS_CLIENT_PORT,
         DEFAULT_NATS_ROUTING_PORT,
         DEFAULT_NATS_HTTP_MONITORING_PORT);
-    waitingFor(Wait.forLogMessage(".*Server is ready.*", 1));
+    setWaitStrategy(Wait.forLogMessage(".*Server is ready.*", 1));
+  }
+
+  /**
+   * Gets the configured username for NATS authentication.
+   *
+   * @return the configured username (may be {@code null} if not configured)
+   */
+  public String getUsername() {
+    return username;
+  }
+
+  /**
+   * Gets the configured password for NATS authentication.
+   *
+   * @return the configured password (may be {@code null} if not configured)
+   */
+  public String getPassword() {
+    return password;
+  }
+
+  /**
+   * Gets the value of jet stream feature flag.
+   *
+   * @return the jet stream feature flag
+   */
+  public boolean isJetStreamEnabled() {
+    return jetStreamEnabled;
+  }
+
+  /**
+   * Gets the value of debug feature flag.
+   *
+   * @return the debug feature flag
+   */
+  public boolean isDebugEnabled() {
+    return debugEnabled;
+  }
+
+  /**
+   * Gets the value of protocol tracing feature flag.
+   *
+   * @return the protocol tracing feature flag
+   */
+  public boolean isProtocolTracingEnabled() {
+    return protocolTracingEnabled;
   }
 
   /**
    * Gets the port for client connections.
    *
-   * @return The mapped port for client connections.
+   * @return the mapped port for client connections
    */
   public Integer getClientPort() {
     return getMappedPort(DEFAULT_NATS_CLIENT_PORT);
@@ -74,7 +128,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Gets the port for cluster/route connections.
    *
-   * @return The mapped port for routing connections.
+   * @return the mapped port for routing connections
    */
   public Integer getRoutingPort() {
     return getMappedPort(DEFAULT_NATS_ROUTING_PORT);
@@ -83,7 +137,7 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Gets the port for HTTP monitoring.
    *
-   * @return The mapped port for HTTP monitoring.
+   * @return the mapped port for HTTP monitoring
    */
   public Integer getHttpMonitoringPort() {
     return getMappedPort(DEFAULT_NATS_HTTP_MONITORING_PORT);
@@ -110,10 +164,10 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
   /**
    * Enables JetStream for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withJetStream() {
-    withCommand("--jetstream");
+    jetStreamEnabled = true;
     return this;
   }
 
@@ -121,33 +175,55 @@ public class NatsContainer extends GenericContainer<NatsContainer> {
    * Configures authentication with username and password.
    *
    * @param username
-   *     The username for authentication
+   *     the username for authentication
    * @param password
-   *     The password for authentication
-   * @return This container instance
+   *     the password for authentication
+   * @return this container instance
    */
   public NatsContainer withAuth(String username, String password) {
-    withCommand("--user", username, "--pass", password);
+    this.username = username;
+    this.password = password;
     return this;
   }
 
   /**
    * Enables debug logging for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withDebug() {
-    withCommand("-D");
+    debugEnabled = true;
     return this;
   }
 
   /**
    * Enables protocol tracing for the NATS server.
    *
-   * @return This container instance
+   * @return this container instance
    */
   public NatsContainer withProtocolTracing() {
-    withCommand("-V");
+    protocolTracingEnabled = true;
     return this;
+  }
+
+  /**
+   * Applies all accumulated command-line arguments to the container before it starts.
+   */
+  @Override
+  protected void configure() {
+    List<String> cmd = new ArrayList<>(Arrays.asList(getCommandParts()));
+    if (username != null) {
+      cmd.addAll(Arrays.asList("--user", username, "--pass", password));
+    }
+    if (jetStreamEnabled) {
+      cmd.add("--jetstream");
+    }
+    if (debugEnabled) {
+      cmd.add("-D");
+    }
+    if (protocolTracingEnabled) {
+      cmd.add("-V");
+    }
+    setCommandParts(cmd.toArray(new String[0]));
   }
 }

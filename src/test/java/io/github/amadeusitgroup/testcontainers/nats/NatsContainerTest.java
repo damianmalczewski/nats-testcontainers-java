@@ -6,6 +6,7 @@ import io.nats.client.JetStreamManagement;
 import io.nats.client.Message;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import io.nats.client.Subscription;
 import io.nats.client.api.StorageType;
 import io.nats.client.api.StreamConfiguration;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NatsContainerTest {
 
@@ -26,6 +28,12 @@ class NatsContainerTest {
   void shouldStartNATSContainer() {
     try (NatsContainer natsContainer = new NatsContainer(NATS_IMAGE)) {
       natsContainer.start();
+
+      assertThat(natsContainer.getUsername()).isNull();
+      assertThat(natsContainer.getPassword()).isNull();
+      assertThat(natsContainer.isJetStreamEnabled()).isFalse();
+      assertThat(natsContainer.isDebugEnabled()).isFalse();
+      assertThat(natsContainer.isProtocolTracingEnabled()).isFalse();
 
       assertThat(natsContainer.getClientPort()).isNotNull();
       assertThat(natsContainer.getRoutingPort()).isNotNull();
@@ -53,7 +61,7 @@ class NatsContainerTest {
 
       try (Connection nc = Nats.connect(options)) {
         // Subscribe
-        io.nats.client.Subscription subscription = nc.subscribe(subject);
+        Subscription subscription = nc.subscribe(subject);
         nc.flush(Duration.ofSeconds(1));
 
         // Publish
@@ -72,6 +80,8 @@ class NatsContainerTest {
   void shouldSupportJetStream() throws Exception {
     try (NatsContainer natsContainer = new NatsContainer(NATS_IMAGE).withJetStream()) {
       natsContainer.start();
+
+      assertThat(natsContainer.isJetStreamEnabled()).isTrue();
 
       Options options = new Options.Builder().server(natsContainer.getConnectionUrl()).build();
 
@@ -116,6 +126,9 @@ class NatsContainerTest {
     try (NatsContainer natsContainer = new NatsContainer(NATS_IMAGE).withAuth(username, password)) {
       natsContainer.start();
 
+      assertThat(natsContainer.getUsername()).isEqualTo(username);
+      assertThat(natsContainer.getPassword()).isEqualTo(password);
+
       Options options = new Options.Builder()
           .server(natsContainer.getConnectionUrl())
           .userInfo(username, password)
@@ -128,7 +141,7 @@ class NatsContainerTest {
         String subject = "auth-test";
         String message = "Authenticated message";
 
-        io.nats.client.Subscription subscription = nc.subscribe(subject);
+        Subscription subscription = nc.subscribe(subject);
         nc.flush(Duration.ofSeconds(1));
 
         nc.publish(subject, message.getBytes(StandardCharsets.UTF_8));
@@ -138,6 +151,25 @@ class NatsContainerTest {
         assertThat(msg).isNotNull();
         assertThat(new String(msg.getData(), StandardCharsets.UTF_8)).isEqualTo(message);
       }
+    }
+  }
+
+  @Test
+  void shouldFailConnectionWithWrongCredentials() {
+    try (NatsContainer natsContainer = new NatsContainer(NATS_IMAGE).withAuth("user", "correctpass")) {
+      natsContainer.start();
+
+      Options options = new Options.Builder()
+          .server(natsContainer.getConnectionUrl())
+          .userInfo("user", "wrongpass")
+          .maxReconnects(0)
+          .build();
+
+      assertThatThrownBy(() -> {
+        try (Connection nc = Nats.connect(options)) {
+          // do nothing
+        }
+      }).isInstanceOf(IOException.class);
     }
   }
 
@@ -172,6 +204,7 @@ class NatsContainerTest {
       natsContainer.start();
 
       // Verify container started successfully with debug flag
+      assertThat(natsContainer.isDebugEnabled()).isTrue();
       assertThat(natsContainer.isRunning()).isTrue();
 
       // Verify basic connectivity still works
@@ -188,6 +221,7 @@ class NatsContainerTest {
       natsContainer.start();
 
       // Verify container started successfully with protocol tracing flag
+      assertThat(natsContainer.isProtocolTracingEnabled()).isTrue();
       assertThat(natsContainer.isRunning()).isTrue();
 
       // Verify basic connectivity still works
@@ -195,6 +229,21 @@ class NatsContainerTest {
       try (Connection nc = Nats.connect(options)) {
         assertThat(nc.getStatus()).isEqualTo(Connection.Status.CONNECTED);
       }
+    }
+  }
+
+  @Test
+  void shouldRetainAdditionalCommandOptions() {
+    try (NatsContainer natsContainer =
+        new NatsContainer(NATS_IMAGE)
+            .withCommand("--name", "test-server")
+            .withJetStream()
+            .withDebug()) {
+
+      natsContainer.configure();
+
+      assertThat(natsContainer.getCommandParts())
+          .contains("--name", "test-server", "--jetstream", "-D");
     }
   }
 }
