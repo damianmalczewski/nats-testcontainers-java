@@ -12,16 +12,20 @@ A [Testcontainers](https://www.testcontainers.org/) module for [NATS](https://na
 
 ## Installation
 
+[![Maven Central Version](https://img.shields.io/maven-central/v/io.github.amadeusitgroup.testcontainers/nats)](https://central.sonatype.com/artifact/io.github.amadeusitgroup.testcontainers/nats)
+
 Add the dependency to your `pom.xml`:
 
 ```xml
 <dependency>
     <groupId>io.github.amadeusitgroup.testcontainers</groupId>
     <artifactId>nats</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>{version}</version>
     <scope>test</scope>
 </dependency>
 ```
+
+See latest version at [Releases](https://github.com/AmadeusITGroup/nats-testcontainers-java/releases) page.
 
 ## Usage
 
